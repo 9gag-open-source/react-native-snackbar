@@ -7,6 +7,9 @@ export default {
   LENGTH_INDEFINITE: NativeModules.RNSnackbar.LENGTH_INDEFINITE,
 
   show: (options) => {
+    if (options.backgroundColor) {
+      options.backgroundColor = processColor(options.backgroundColor);
+    }
     const action = options.action ? options.action.onPress : () => {};
 
     if (options.action && options.action.color) {

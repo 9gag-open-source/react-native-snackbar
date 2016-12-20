@@ -29,8 +29,10 @@ static const NSTimeInterval ANIMATION_DURATION = 0.250;
 
 @property (nonatomic) RNSnackBarViewState state;
 @property (nonatomic, strong) NSString* title;
+@property (nonatomic, strong) NSNumber* fontSize;
 @property (nonatomic, strong) NSString* actionTitle;
 @property (nonatomic, strong) UIColor* actionTitleColor;
+@property (nonatomic, strong) NSNumber* actionFontSize;
 @property (nonatomic, strong) void (^pendingCallback)();
 @property (nonatomic, strong) void (^callback)();
 
@@ -77,12 +79,12 @@ static const NSTimeInterval ANIMATION_DURATION = 0.250;
     titleLabel.text = _title;
     titleLabel.numberOfLines = 2;
     titleLabel.textColor = [UIColor whiteColor];
-    titleLabel.font = [UIFont boldSystemFontOfSize:14];
+    titleLabel.font = [UIFont systemFontOfSize:_fontSize.integerValue];
     [titleLabel setTranslatesAutoresizingMaskIntoConstraints:NO];
     [self addSubview:titleLabel];
   
     actionButton = [UIButton new];
-    actionButton.titleLabel.font = [UIFont boldSystemFontOfSize:16];
+    actionButton.titleLabel.font = [UIFont systemFontOfSize:_actionFontSize.integerValue];
     [actionButton setTitle:@"" forState:UIControlStateNormal];
     [actionButton addTarget:self action:@selector(actionPressed:) forControlEvents:UIControlEventTouchUpInside];
     [actionButton setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -91,7 +93,7 @@ static const NSTimeInterval ANIMATION_DURATION = 0.250;
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:
           @"H:|-24-[titleLabel]-24-[actionButton]-24-|"
           options:0 metrics:nil views:@{@"titleLabel": titleLabel, @"actionButton": actionButton}]];
-    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-14-[titleLabel]-14-|" options:0 metrics:nil views:@{@"titleLabel": titleLabel}]];
+    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-24-[titleLabel]-24-|" options:0 metrics:nil views:@{@"titleLabel": titleLabel}]];
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[actionButton]|" options:0 metrics:nil views:@{@"actionButton": actionButton}]];
     [titleLabel setContentCompressionResistancePriority:250 forAxis:UILayoutConstraintAxisHorizontal];
     [titleLabel setContentHuggingPriority:250 forAxis:UILayoutConstraintAxisHorizontal];
@@ -109,6 +111,14 @@ static const NSTimeInterval ANIMATION_DURATION = 0.250;
 }
 -(void)setActionTitleColor:(UIColor *)actionTitleColor {
     [actionButton setTitleColor:actionTitleColor forState:UIControlStateNormal];
+}
+
+- (void)setFontSize:(NSNumber *)fontSize {
+    titleLabel.font = [UIFont systemFontOfSize:fontSize.integerValue];
+}
+
+- (void)setActionFontSize:(NSNumber *)actionFontSize {
+    actionButton.titleLabel.font = [UIFont systemFontOfSize:actionFontSize.integerValue];
 }
 
 - (void)actionPressed:(UIButton*)sender {
@@ -175,17 +185,24 @@ static const NSTimeInterval ANIMATION_DURATION = 0.250;
     }
     if (!_pendingOptions) { return; }
   
+    
     self.title = _pendingOptions[@"title"];
+    NSNumber* backgroundColor = _pendingOptions[@"backgroundColor"];
+    if (backgroundColor) {
+        self.backgroundColor = [RCTConvert UIColor:backgroundColor];
+    }
+    self.fontSize = _pendingOptions[@"fontSize"] ? : @(16);
     self.callback = _pendingCallback;
     NSDictionary* action = _pendingOptions[@"action"];
     if (action) {
         self.actionTitle = _pendingOptions[@"action"][@"title"];
         NSNumber* color = _pendingOptions[@"action"][@"color"];
         self.actionTitleColor = [RCTConvert UIColor:color];
+        self.actionFontSize = _pendingOptions[@"action"][@"fontSize"] ? : @(14);
     } else {
         self.actionTitle = @"";
     }
-    NSNumber* duration = _pendingOptions[@"duration"] ? (NSNumber*)_pendingOptions[@"duration"] : @(-1);
+    NSNumber* duration = _pendingOptions[@"duration"] ? : @(-1);
     [self presentWithDuration:duration];
 }
 
